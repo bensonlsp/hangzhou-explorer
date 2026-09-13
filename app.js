@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {places,categories,byId,inCategory,knowledge} from './data.js';
+import {places,categories,byId,inCategory,knowledge,souvenirs} from './data.js';
 import {buildWorld,project,unproject,bounds,heightAt,lake,river,canal,roads} from './scene.js';
 const $=s=>document.querySelector(s),world=$('#world');
 const small=matchMedia('(max-width:900px)'),reduced=matchMedia('(prefers-reduced-motion:reduce)');
@@ -12,7 +12,8 @@ function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.c
 function sources(s){return s.map(sourceHTML).join('');}
 function setGuide(expanded){$('#guide').classList.toggle('minimized',!expanded);$('#guide-teaser').setAttribute('aria-expanded',String(expanded));}
 function renderGuide(){const p=byId[selected];$('#guide-teaser').innerHTML=`<span class="eyebrow">${esc(p.kind)} · ${esc(p.area)}</span><strong>${esc(p.name)}</strong><span class="chevron" aria-hidden="true">${$('#guide').classList.contains('minimized')?'＋':'−'}</span><small>${esc(p.tagline)}</small>`;
- $('#guide-content').innerHTML=`<p class="place-intro">${esc(p.intro)}</p><div class="fact-row">${p.facts.map(([a,b])=>`<div><small>${esc(a)}</small><strong>${esc(b)}</strong></div>`).join('')}</div><div class="guide-actions"><button id="guide-fly">飛近景點</button><button id="guide-orbit">環繞觀看</button></div>${p.sections.map(([t,b])=>`<h3>${esc(t)}</h3><p>${esc(b)}</p>`).join('')}<p class="position-note">${esc(p.position)}</p><div class="source-list"><b>資料來源</b>${sources(p.sources)}</div>`;
+ $('#guide-content').innerHTML=`<div class="access-note ${p.restricted?'restricted':''}"><strong>${esc(p.access)}</strong><p>${esc(p.accessNote)}</p></div><p class="place-intro">${esc(p.intro)}</p><div class="fact-row">${p.facts.map(([a,b])=>`<div><small>${esc(a)}</small><strong>${esc(b)}</strong></div>`).join('')}</div><div class="guide-actions"><button id="guide-fly">飛近景點</button><button id="guide-orbit">環繞觀看</button></div>${p.sections.map(([t,b])=>`<h3>${esc(t)}</h3><p>${esc(b)}</p>`).join('')}<h3>附近也可以留意</h3><p class="nearby-note">按地理位置延伸探索；不表示步行可達或交通路線。</p><div class="nearby-links">${p.nearby.map(id=>`<button data-place="${id}">${esc(byId[id].short)} ↗</button>`).join('')}</div><p class="position-note">${esc(p.position)}</p><div class="source-list"><b>資料來源</b>${sources(p.sources)}</div>`;
+ $('#guide-content').querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>openPlace(b.dataset.place));
  $('#guide-content').scrollTop=0;$('#guide-fly').onclick=()=>{goTo(selected);if(small.matches)setGuide(false);};$('#guide-orbit').onclick=()=>{startOrbit();if(small.matches)setGuide(false);};
 }
 function renderCategories(){const el=$('#categories');el.innerHTML=categories.map(c=>`<button data-category="${c.id}" class="${category===c.id?'active':''}" style="--theme:${c.color}" aria-pressed="${category===c.id}"><b>${esc(c.name)}</b><span>${esc(c.subtitle)}</span></button>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>setCategory(b.dataset.category));}
@@ -23,6 +24,10 @@ $('#guide-teaser').onclick=()=>{setGuide($('#guide').classList.contains('minimiz
 function toggleExplorer(open){$('#explorer').classList.toggle('open',open);$('#show-explorer').setAttribute('aria-expanded',String(open));if(open&&small.matches)setGuide(false);}
 $('#show-explorer').onclick=()=>toggleExplorer(!$('#explorer').classList.contains('open'));$('#close-explorer').onclick=()=>toggleExplorer(false);
 $('#knowledge-cards').innerHTML=knowledge.map(k=>`<article class="knowledge-card"><span>${esc(k.label)}</span><h3>${esc(k.title)}</h3><p>${esc(k.text)}</p>${sources(k.sources)}</article>`).join('');
+function openPlace(id){closeDialogs();toggleExplorer(false);choose(id,true);}
+$('#souvenir-cards').innerHTML=souvenirs.map(g=>`<article class="knowledge-card gift-card"><span>${esc(g.tag)}</span><h3>${esc(g.name)}</h3><p>${esc(g.intro)}</p><h4>點揀</h4><p>${esc(g.check)}</p><h4>包裝與保存</h4><p>${esc(g.carry)}</p><h4>在哪裏留意</h4><p>${esc(g.where)}</p><div class="nearby-links">${g.places.map(id=>`<button data-place="${id}">${esc(byId[id].short)} ↗</button>`).join('')}</div>${sources(g.sources)}</article>`).join('');
+$('#souvenir-cards').querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>openPlace(b.dataset.place));
+$('#souvenirs').onclick=()=>showDialog('#souvenir-dialog');
 function showDialog(sel){resetInput();stopMotion();closeDialogs();$(sel).showModal();}
 $('#city-knowledge').onclick=()=>showDialog('#info-dialog');$('#help').onclick=$('#model-note').onclick=()=>showDialog('#help-dialog');
 document.querySelectorAll('.dialog-close').forEach(b=>b.onclick=()=>b.closest('dialog').close());document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}}));
@@ -32,7 +37,7 @@ const labels=places.map(p=>{const b=document.createElement('button');b.className
 // The north-up inset is drawn from the same editorial geometry as the 3D scene.
 const map=$('#minimap'),ctx=map.getContext('2d'),mapState={scale:1,ox:0,oz:0},mapPins=[];let mapDirty=true;
 function mapXY(x,z){return [mapState.ox+x*mapState.scale,mapState.oz+z*mapState.scale];}
-function drawMap(){if(!ctx)return;const w=map.width,h=map.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#e4ebd9';ctx.fillRect(0,0,w,h);const box={minX:-145,maxX:365,minZ:-565,maxZ:190};const scale=Math.min((w-75)/(box.maxX-box.minX),(h-28)/(box.maxZ-box.minZ));mapState.scale=scale;mapState.ox=(w-(box.maxX+box.minX)*scale)/2;mapState.oz=(h-(box.maxZ+box.minZ)*scale)/2;
+function drawMap(){if(!ctx)return;const w=map.width,h=map.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#e4ebd9';ctx.fillRect(0,0,w,h);const box={minX:-210,maxX:365,minZ:-565,maxZ:190};const scale=Math.min((w-75)/(box.maxX-box.minX),(h-28)/(box.maxZ-box.minZ));mapState.scale=scale;mapState.ox=(w-(box.maxX+box.minX)*scale)/2;mapState.oz=(h-(box.maxZ+box.minZ)*scale)/2;
  function path(pts,c,width,fill=false){ctx.beginPath();pts.forEach(([x,z],i)=>{const[a,b]=mapXY(x,z);i?ctx.lineTo(a,b):ctx.moveTo(a,b);});ctx.strokeStyle=c;ctx.lineWidth=width;ctx.lineJoin='round';if(fill){ctx.closePath();ctx.fillStyle=c;ctx.fill();}else ctx.stroke();}
  path(lake,'#8bb4a5',1,true);path(river,'#8bb4a5',4);path(canal,'#a8c5b0',1.2);for(const r of roads)path(r.points,'#c9cfb1',.8);
  const c=categories.find(c=>c.id===category),visible=inCategory(category).map(p=>p.id);

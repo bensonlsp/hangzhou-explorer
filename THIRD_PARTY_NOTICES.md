@@ -18,3 +18,5 @@
 - 烏鎮旅遊：https://www.wuzhen.com.cn/
 
 網站文字為重新整理的事實摘要及自行撰寫的觀看提示，不轉載來源文章、照片或其版面。來源網站內容仍適用各自授權；提供連結不表示授予其內容的再使用權。
+
+Additional public background links are listed beside the relevant place or shopping card: Hangzhou Xiaoshan International Airport, Alibaba Group, Hangzhou.com.cn, UNESCO Liangzhu, Liangzhu Museum, China National Silk Museum, its Google Arts & Culture collection, Wangxingji, and Wikipedia Hefang Street. Descriptions are independently paraphrased; links do not imply endorsement, access rights, affiliation or permission to reuse third-party media. No third-party photographs or brand logos are included. Shopping advice is editorial, with no affiliate links or stock/price guarantees.

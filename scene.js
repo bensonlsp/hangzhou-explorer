@@ -53,7 +53,7 @@ export function buildWorld(scene){
  for(const [lon,lat,angle] of [[120.226,30.238,-.67],[120.17,30.188,-.67],[120.28,30.297,-.6]]){const [x,z]=project(lon,lat);box(scene,x,.2,z,11,.13,.38,'#e7debe',angle);}
  const city=[],fields=[],trees=[],treeTrunks=[];
  const reserves=places.map(p=>({...p,point:project(p.lon,p.lat)}));
- const nearPlace=(x,z)=>reserves.some(p=>Math.hypot(p.point[0]-x,p.point[1]-z)<(p.model==='watertown'?9:p.model==='lake'?0:p.model==='wetland'?12:3.8));
+ const nearPlace=(x,z)=>reserves.some(p=>Math.hypot(p.point[0]-x,p.point[1]-z)<(p.reserve??(p.model==='watertown'?9:p.model==='lake'?0:p.model==='wetland'?12:3.8)));
  const roadDist=(x,z)=>Math.min(...roads.map(r=>distanceToPath(x,z,r.points)));
  function town(cx,cz,rx,rz,n,heights){for(let i=0;i<n;i++){const x=cx+(rand()-.5)*rx*2,z=cz+(rand()-.5)*rz*2;if(isWater(x,z)||heightAt(x,z)>.45||nearPlace(x,z)||roadDist(x,z)<.55||Math.abs((x+1)%5.6)<.6||Math.abs((z+1)%5.6)<.6)continue;const h=heights[0]+rand()*heights[1],w=.3+rand()*.42,d=.3+rand()*.55;city.push([x,h/2+.035,z,w,h,d,0,['#ede7d7','#d5d9c7','#c0caba','#dfe1cc'][Math.floor(rand()*4)]]);}}
  town(25,20,44,51,4200,[.25,.85]);town(43,60,14,13,1400,[.55,2.0]);town(48,95,24,20,1700,[.35,1.4]);town(-54,-13,73,24,2500,[.23,.8]);town(40,-64,52,28,1800,[.3,.7]);
@@ -73,6 +73,12 @@ export function buildWorld(scene){
  const groups=new Map(),roots=[];
  for(const p of places){const g=new THREE.Group(),[x,z]=project(p.lon,p.lat);g.position.set(x,Math.max(.13,heightAt(x,z)),z);g.userData.placeId=p.id;scene.add(g);groups.set(p.id,g);roots.push(g);if(p.model==='museum')box(g,0,.025,0,6,.05,5,'#d9d9bd');
  switch(p.model){
+ case 'airport':box(g,0,.05,0,30,.1,24,'#c5cfbd');for(const a of [-9,9]){box(g,a,.12,0,1.3,.12,21,'#778d82');for(let j=-8;j<=8;j+=2)box(g,a,.19,j,.08,.02,.7,'#eee8d3');}box(g,0,.65,0,7,1.3,3,'#e7e4d5');box(g,0,1.37,0,7.5,.16,3.5,'#789f97');for(const a of [-2.6,0,2.6])box(g,a,.45,3,1,.9,5,'#d4dece');cylinder(g,5,1.5,-4,.3,.4,3,'#c7cbbc',8);box(g,5,3,-4,1.1,.6,1.1,'#799e98');break;
+ case 'campus':box(g,0,.04,0,10,.08,8,'#c3d1bb');for(const a of [-3,0,3])for(const z of [-2,2]){box(g,a,1,z,2,2,2,'#d9e0d5');box(g,a,1.8,z+1.01,1.8,.4,.04,'#779e98');box(g,a,2.08,z,2.2,.16,2.2,'#95af9b');}break;
+ case 'temple':box(g,0,.04,0,8,.08,8,'#c6c7aa');for(const z of [-2.5,0,2.5])house(g,0,z,3,1.5,.9,'#786c4c');pagoda(g,3,0);break;
+ case 'tea':box(g,0,.03,0,13,.06,12,'#91ab7c');for(let j=-5;j<=5;j+=1.1)for(let i=-5;i<=5;i+=1.2)box(g,i,.3,j,.85,.55,.45,'#548b62');house(g,0,7,2,1.4,.7);break;
+ case 'street':box(g,0,.04,0,8,.08,9,'#c8c4a6');for(const a of [-2,2])for(let z=-3;z<=3;z+=1.5)house(g,a,z,1.4,1,.65);break;
+ case 'ruins':box(g,0,.04,0,24,.08,20,'#bac89b');for(let j=0;j<3;j++)box(g,0,.3+j*.4,0,12-j*3,.4,9-j*2,'#bbaa7b');for(const a of [-9,9])box(g,a,.22,0,1.2,.4,14,'#b2a782');box(g,0,.14,8,18,.2,1,'#cfbd95');break;
  case 'museum':for(const [a,b] of [[-1.4,0],[1.4,0],[0,-1.2]]){box(g,a,.38,b,1.6,.76,1.2,'#e9e5d4');box(g,a,.8,b,1.9,.12,1.5,'#c6c0a4');for(let i=-2;i<=2;i++)box(g,a+i*.26,.38,b+.62,.08,.58,.05,'#749086');}box(g,0,.08,1.2,4,.1,1,'#c3cfb2');break;
  case 'canalfront':{strip([[x,z-7],[x,z+7]],1.2,'#79a69b',.13);const b=new THREE.Group();b.rotation.y=Math.PI/2;g.add(b);bridge(b,0,0,2.2);for(const side of [-1,1])for(let i=-3;i<=3;i++)house(g,side*2.2,i*1.4,.7,.8,.4);break;}
  case 'riverfront':box(g,-2.3,.12,0,.85,.13,8,'#d4d0af');for(let i=-4;i<=4;i++){box(g,-2.3,.32,i*.8,.15,.28,.4,'#788f68');}break;
@@ -80,7 +86,7 @@ export function buildWorld(scene){
  case 'wetland':for(const [a,b] of [[-4,0],[3,-3],[1,5]]){house(g,a,b,.8,.55,.3);bridge(g,a+1.2,b,1.5);}break;
  case 'watertown':{const main=[[-10,0],[-6,-1],[-2,0],[2,1],[5,0],[10,-2]].map(([a,b])=>[x+a,z+b]);strip(main,1.15,'#73a097',.11);for(let r=-3;r<=3;r++){const row=r*1.7;if(Math.abs(row)<1.4)continue;for(let c=-5;c<=5;c++){const a=c*1.6+(r%2)*.25;if(rand()<.1)continue;house(g,a,row,.8+rand()*.3,.7,.24+rand()*.18);}}for(const a of [-6,-1,4,8])bridge(g,a,a>0?.6:-.1,1.8);for(const a of [-4,2,7]){box(g,a,.16,0,.5,.11,.16,'#8d7150');box(g,a,.24,0,.2,.11,.17,'#c4a77f');}break;}
  }
- if(!['lake','wetland','watertown','canalfront','riverfront'].includes(p.model)){for(let i=0;i<12;i++){const a=(i/12)*Math.PI*2;const r=2.5;const m=new THREE.Mesh(coneGeo,mat('#6a9573'));m.position.set(Math.cos(a)*r,.37,Math.sin(a)*r);m.scale.set(.17,.7,.17);g.add(m);}}
+ if(p.model==='museum'){for(let i=0;i<12;i++){const a=(i/12)*Math.PI*2;const r=2.5;const m=new THREE.Mesh(coneGeo,mat('#6a9573'));m.position.set(Math.cos(a)*r,.37,Math.sin(a)*r);m.scale.set(.17,.7,.17);g.add(m);}}
  }
  // Batch repeated landmark parts while retaining each selectable place root.
  scene.updateMatrixWorld(true);
@@ -93,7 +99,7 @@ export function buildWorld(scene){
  function groundText(text,lon,lat,w){if(typeof document==='undefined')return;const cv=document.createElement('canvas');cv.width=1024;cv.height=128;const ctx=cv.getContext('2d');if(!ctx)return;ctx.font='500 72px sans-serif';ctx.textAlign='center';ctx.fillStyle='#3e705e';ctx.fillText(text,512,88);const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w/8),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;const [x,z]=project(lon,lat);m.position.set(x,.22,z);scene.add(m);}
  groundText('西 湖',120.142,30.244,10);groundText('錢 塘 江',120.34,30.317,21);groundText('杭 州',120.19,30.304,17);groundText('濱 江',120.23,30.2,13);groundText('西 溪',120.053,30.274,8);groundText('往 烏 鎮',120.345,30.57,22);groundText('烏 鎮',120.489,30.757,10);
  const halo=new THREE.Mesh(new THREE.RingGeometry(.86,1,64),new THREE.MeshBasicMaterial({color:'#e6bb71',transparent:true,opacity:.8,side:THREE.DoubleSide,depthTest:false}));halo.rotation.x=-Math.PI/2;halo.renderOrder=6;scene.add(halo);
- function select(id){const p=byId[id],g=groups.get(id),r=['lake','wetland','watertown'].includes(p.model)?p.radius*.55:3.6;halo.position.set(g.position.x,g.position.y+.16,g.position.z);halo.scale.setScalar(r);}
+ function select(id){const p=byId[id],g=groups.get(id),r=Math.max(3.6,p.radius*.55);halo.position.set(g.position.x,g.position.y+.16,g.position.z);halo.scale.setScalar(r);}
  select('westlake');
  return {groups,roots,halo,select,terrain,stats:{backgroundBuildings:city.length,trees:trees.length,fields:fields.length}};
 }
