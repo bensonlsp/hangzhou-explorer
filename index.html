@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#153e3c"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>杭行｜杭州與江南 3D 自由導覽</title><meta name="description" content="用3D航拍視角探索西湖、西溪、大運河、錢塘江與江南水鄉。自由選擇景點，閱讀山水與文化背景。">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23153e3c'/%3E%3Cpath d='M5 20 12 8 19 20M13 20l7-13 7 13M5 25h22' fill='none' stroke='%23f2dfb1' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main id="app">
+<div id="world" tabindex="0" aria-label="杭州3D航拍場景。拖曳轉向，WASD或搖桿移動，R和F升降。"></div><div id="labels"></div>
+<header class="topbar"><div class="brand"><span class="seal" aria-hidden="true">杭</span><div><h1>杭行 <span>HANGZHOU FLIGHT</span></h1><p>杭州與江南 <span>山水 · 城市 · 文化</span></p></div></div><div class="top-actions"><button id="show-explorer" aria-expanded="false" aria-controls="explorer">景點</button><button id="city-knowledge">認識杭州</button><button id="overview">全域</button><button id="help" class="circle" aria-label="操作及資料說明">?</button></div></header>
+<nav class="categorybar" aria-label="選擇探索主題" id="categories"></nav>
+<aside id="explorer" aria-label="景點清單與地圖"><div class="aside-heading"><span>景點地圖</span><button id="close-explorer" class="circle" aria-label="收起景點">×</button></div><div class="map-wrap"><canvas id="minimap" width="560" height="350" aria-label="杭州與烏鎮景點總覽；可點選景點"></canvas><span>北 ↑</span></div><div class="map-key"><i></i><span>自由選景點 · 沒有固定遊覽次序</span></div><h2 id="category-title"></h2><ol id="stops"></ol><p class="explorer-note">從主題選擇景點；地圖只供認識地理關係，現場資訊請查景區公告。</p></aside>
+<div class="scene-status"><span id="mode-label">自由探索</span><span id="region-label">杭州 · 西湖一帶</span></div>
+<div class="compass" aria-label="視角方位"><span id="compass-needle">↑</span><b id="heading">N</b></div>
+<aside id="guide" class="guide" aria-label="地點導賞"><button id="guide-teaser" aria-expanded="false" aria-controls="guide-content"></button><div id="guide-content"></div></aside>
+<div class="flight-console"><div class="flight-mode" role="group" aria-label="飛行方式"><button id="free-mode" class="active" aria-pressed="true">自由飛行</button><button id="orbit-mode" aria-pressed="false">環繞此站</button><button id="next-stop">下一景點 ›</button></div><div class="speed-control"><label for="speed-select">飛行速度</label><select id="speed-select"><option value="0.65">慢遊</option><option value="3.5" selected>巡航</option><option value="24">跨城</option></select><span id="altitude">視角高度</span></div></div>
+<div id="joystick" aria-label="按住並拖曳控制前後左右移動" role="group"><span class="joy-n">↑</span><span class="joy-w">←</span><span class="joy-e">→</span><span class="joy-s">↓</span><div id="knob"></div></div><span class="joystick-label">前後左右</span>
+<div class="alt-controls"><button id="rise" aria-label="按住上升">＋</button><button id="lower" aria-label="按住下降">−</button><span>升降</span></div>
+<div id="scene-hint">拖曳轉向 · 搖桿移動 · 撳景點睇導賞</div>
+<footer><button id="model-note">概括 3D · 非導航地圖</button><span>獨立旅遊導覽</span></footer><div id="toast" role="status" aria-live="polite"></div>
+<div id="loading" role="status"><span class="loading-mark">杭</span><strong>正在展開杭州山水</strong><p>準備湖山、水岸與江南街景</p></div>
+<dialog id="info-dialog"><div class="dialog-top"><span>杭州隨行筆記</span><button class="dialog-close circle" aria-label="關閉">×</button></div><h2>先認識這片山水。</h2><div id="knowledge-cards"></div></dialog>
+<dialog id="help-dialog"><div class="dialog-top"><span>操作與資料</span><button class="dialog-close circle" aria-label="關閉">×</button></div><h2>像航拍機一樣探索。</h2><p><b>手機與平板</b><br>拖曳畫面轉向；左下搖桿移動；右下＋／−升降。雙指縮放可前進或後退。鬆手就停。</p><p><b>電腦</b><br>W A S D 移動，R／F 升降，方向鍵轉向，滑鼠拖曳看四周，滾輪前進／後退。Esc 停止環繞並收起面板。</p><p><b>按主題自由選擇</b><br>湖山、水岸、文化與周邊分類沒有固定日期或遊覽順序。「下一景點」只切換清單。遠距離移動可用「跨城」速度，亦可直接選目的地飛近。</p><p><b>簡化景觀模型</b><br>地形、水道、道路及建築是概括示意；民居、橋與展館使用通用造型。比例及高度經調整，不能作導航、測量或辨認真實入口。這裏沒有即時街景或實景掃描。</p><p><b>內容來源</b><br>景點介紹由公開資料重新撰寫，來源列於各景點。票價、船班、開放時間與展覽可能調整，出發前請查營運方資訊。本網站是獨立旅遊作品，未獲場館或任何部門背書。</p><p><b>私隱</b><br>應用沒有登入、表格、定位、分析追蹤、廣告或瀏覽紀錄儲存。外部資料連結由你點擊才開啟；網站託管服務仍可能處理 IP 及一般連線紀錄。<a href="./privacy.html">查看私隱及素材說明</a>。</p><p class="small">3D引擎：Three.js（MIT）。<a href="./vendor/THREE-LICENSE.txt" target="_blank" rel="noopener noreferrer">查看授權</a>。景觀圖形由程式繪製；沒有使用外部照片、標誌或地圖貼圖。</p></dialog>
+</main>
+<noscript><p>請啟用 JavaScript，以操作3D導覽；景點介紹來源列於網站資料說明。</p></noscript>
+<script type="module" src="./app.js"></script>
+</body></html>
